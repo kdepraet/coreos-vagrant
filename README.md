@@ -79,6 +79,8 @@ coreos-cloudinit simplifies the provisioning process through the use of a script
 To get started, copy `user-data.sample` to `user-data` and make any necessary modifications.
 Check out the [coreos-cloudinit documentation][coreos-cloudinit] to learn about the available features.
 
+Each cluster node can be optionally provisioned with a dedicated `user-data-##` file if found in the project directory.
+
 [coreos-cloudinit]: https://github.com/coreos/coreos-cloudinit
 
 #### Configuration
