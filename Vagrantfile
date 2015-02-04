@@ -60,6 +60,10 @@ Vagrant.configure("2") do |config|
     # in CoreOS, so tell Vagrant that so it can be smarter.
     v.check_guest_additions = false
     v.functional_vboxsf     = false
+	# From https://github.com/coreos/coreos-vagrant/issues/124#issuecomment-49481032
+	v.auto_nat_dns_proxy = false
+    v.customize ["modifyvm", :id, "--natdnsproxy1", "off" ]
+    v.customize ["modifyvm", :id, "--natdnshostresolver1", "off" ]
   end
 
   # plugin conflict
@@ -116,16 +120,21 @@ Vagrant.configure("2") do |config|
 
       # Uncomment below to enable NFS for sharing the host machine into the coreos-vagrant VM.
       #config.vm.synced_folder ".", "/home/core/share", id: "core", :nfs => true, :mount_options => ['nolock,vers=3,udp']
+	  #config.vm.synced_folder ".", "/vagrant", type: "smb", :nfs => false
 
       if $share_home
         config.vm.synced_folder ENV['HOME'], ENV['HOME'], id: "home", :nfs => true, :mount_options => ['nolock,vers=3,udp']
       end
+	  
+	  cloud_config_i_path = File.join(File.dirname(__FILE__), "user-data-%02d" % i)
 
-      if File.exist?(CLOUD_CONFIG_PATH)
+      if File.exist?(cloud_config_i_path)
+        config.vm.provision :file, :source => "#{cloud_config_i_path}", :destination => "/tmp/vagrantfile-user-data"
+        config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
+      elsif File.exist?(CLOUD_CONFIG_PATH)
         config.vm.provision :file, :source => "#{CLOUD_CONFIG_PATH}", :destination => "/tmp/vagrantfile-user-data"
         config.vm.provision :shell, :inline => "mv /tmp/vagrantfile-user-data /var/lib/coreos-vagrant/", :privileged => true
       end
-
-    end
+   end
   end
 end
